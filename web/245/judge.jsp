@@ -10,8 +10,8 @@
 <%
     request.setCharacterEncoding("GB18030");
     String name = request.getParameter("userName");
-    String password = request.getParameter("password");
-    if(name.equals("abc")&& password.equals("123")) {
+
+    if(name.equals("lk")) {
 
 %>
 <jsp:forward page="afterLogin.jsp">
