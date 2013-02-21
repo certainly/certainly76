@@ -3,6 +3,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -14,20 +18,39 @@ import java.util.zip.GZIPInputStream;
  */
 public class Test {
     public static void main(String[] args) {
+        connectWeb();
         System.out.println("hell");
+
+
+//        unicode2String("8BBF");
+    }
+
+    private static void connectWeb() {
         String url="http://wap.baidu.com";
 //        String url="http://certainly76_dist.cloudfoundry.com/cc.xml";
 //        String url="http://localhost:8080";
 //        String url="http://www.facebook.com";
 //        String url="http://210.83.228.47:9080/";
 //        String url="http://210.83.228.47:9080/CGNPC_MAPP_SERVER/module/tys/tys_queryListStaff_forTest.jsp?sKeyword=wang&pageIndex=1";
-        String content=downww(url,false,false,"GET","utf-8");
+//        String content=downww(url,false,false,"GET","utf-8");
+
+        HashMap<String,String> tHead=new HashMap<String, String>();
+        tHead.put("redict","ccav");
+        String content=downww(url,false,false,"GET",tHead,"utf-8");
         System.out.println(content);
-
-
     }
 
-
+    static String unicode2String(String unicodeStr){
+        StringBuffer sb = new StringBuffer();
+        String str[] = unicodeStr.toUpperCase().split("U");
+        for(int i=0;i<str.length;i++){
+            if(str[i].equals("")) continue;
+            char c = (char)Integer.parseInt(str[i].trim(),16);
+            sb.append(c);
+        }
+        System.out.println(sb.toString());
+        return sb.toString();
+    }
 
 
     private static void showUtf8Str() {
@@ -58,7 +81,7 @@ public class Test {
     }
 
 
-    public static String downww (String st,boolean bGzipOn,boolean bProxyOn,String sMethod,String sEncode){
+    public static String downww (String st,boolean bGzipOn,boolean bProxyOn,String sMethod,HashMap<String,String> aHead,String sEncode){
         String str = "";
         String s = "";
         StringBuffer sb = new StringBuffer();
@@ -75,10 +98,30 @@ public class Test {
 
             huc.setRequestMethod(sMethod);
 
-//            huc.setDoOutput(true);
+            if(aHead!=null){
+                Iterator iter = aHead.entrySet().iterator();
+                while (iter.hasNext()) {
+                    Map.Entry entry = (Map.Entry) iter.next();
+                    String key = (String) entry.getKey();
+                    String val = (String) entry.getValue();
+                    huc.setRequestProperty(key, val);
+                }
+            }
 
-            InputStream in = huc.getInputStream();
-//            GZIPInputStream in=new GZIPInputStream(oin);
+//            huc.setDoOutput(true);
+            int tResponsecode=huc.getResponseCode();
+            System.out.println("ResponseCode="+tResponsecode);
+            Map<String, List<String>> headerMap = huc.getHeaderFields();
+            for(String key :headerMap.keySet()){
+                System.out.println(key+"-->"+headerMap.get(key));
+            }
+            InputStream oin = huc.getInputStream();
+            InputStream in;
+            if(bGzipOn){
+               in=new GZIPInputStream(oin);
+            }else{
+                in=oin;
+            }
             br = new BufferedReader(new InputStreamReader(in,sEncode));
             while ((s = br.readLine()) != null)
             {
